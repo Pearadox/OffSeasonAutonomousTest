@@ -30,7 +30,7 @@ public class RobotMap {
 
   public static final int JOYSTICK_PORT_ID = 0;
 
-  public static final int GYRO_PORT_ID;
+  public static final int GYRO_PORT_ID = 0;
 
   public static final double WHEEL_DIAMETER = 0d;
   public static final double MAX_VELOCITY = 14d;

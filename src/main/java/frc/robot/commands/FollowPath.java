@@ -38,6 +38,9 @@ public class FollowPath extends Command {
     this.pathName = pathName;
   }
 
+  /**
+   * Tries to read the path specified in the constructor. Sets both paths to null if file is not found
+   */
   private void readTrajectory() {
     try {
       // Paths switched due to PathWeaver bug
@@ -54,6 +57,8 @@ public class FollowPath extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
+    readTrajectory();
+
     leftEncoder = Robot.driveTrain.getFrontLeftEncoder();
     rightEncoder = Robot.driveTrain.getFrontRightEncoder();
 
