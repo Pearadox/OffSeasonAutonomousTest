@@ -22,7 +22,7 @@ import jaci.pathfinder.followers.EncoderFollower;
 public class FollowPath extends Command {
 
   private CANEncoder leftEncoder;
-  private CANEncoder rightEncoder; 
+  private CANEncoder rightEncoder;
   
   private final String pathName;
   private Trajectory leftTrajectory;
@@ -32,6 +32,15 @@ public class FollowPath extends Command {
   private EncoderFollower rightFollower;
 
   private Notifier followerNotifier;
+
+  int leftCount;
+  int rightCount;
+  double leftSpeed;
+  double rightSpeed;
+  double heading;
+  double desiredHeading;
+  double headingDifference;
+  double turn;
   
   public FollowPath(String pathName) {
     requires(Robot.driveTrain);
@@ -86,14 +95,14 @@ public class FollowPath extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    int leftCount = (int) leftEncoder.getPosition() / leftEncoder.getCPR();
-    int rightCount = (int) rightEncoder.getPosition() / rightEncoder.getCPR();
-    double leftSpeed = leftFollower.calculate(leftCount);
-    double rightSpeed = leftFollower.calculate(rightCount);
-    double heading = Robot.gyro.getAngle();
-    double desiredHeading = Pathfinder.r2d(leftFollower.getHeading());
-    double headingDifference = Pathfinder.boundHalfDegrees(desiredHeading - heading);
-    double turn = 0.8 * (-1d / 80d) * headingDifference;
+    leftCount = (int) leftEncoder.getPosition() / leftEncoder.getCPR();
+    rightCount = (int) rightEncoder.getPosition() / rightEncoder.getCPR();
+    leftSpeed = leftFollower.calculate(leftCount);
+    rightSpeed = leftFollower.calculate(rightCount);
+    heading = Robot.gyro.getAngle();
+    desiredHeading = Pathfinder.r2d(leftFollower.getHeading());
+    headingDifference = Pathfinder.boundHalfDegrees(desiredHeading - heading);
+    turn = 0.8 * (-1d / 80d) * headingDifference;
 
     Robot.driveTrain.drive(leftSpeed + turn, rightSpeed - turn);
   }
