@@ -38,22 +38,24 @@ public class FollowPath extends Command {
     this.pathName = pathName;
   }
 
+  private void readTrajectory() {
+    try {
+      // Paths switched due to PathWeaver bug
+      this.leftTrajectory = PathfinderFRC.getTrajectory(this.pathName + ".right");
+      this.rightTrajectory = PathfinderFRC.getTrajectory(this.pathName + ".left");
+    } catch (IOException e) {
+      System.out.printf("Path %s not found", this.pathName);
+      leftTrajectory = null;
+      rightTrajectory = null;
+      return;
+    }
+  }
+
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
     leftEncoder = Robot.driveTrain.getFrontLeftEncoder();
     rightEncoder = Robot.driveTrain.getFrontRightEncoder();
-
-    try {
-      // Paths switched due to PathWeaver bug, TODO: Switch back after PathWeaver is fixed
-      this.leftTrajectory = PathfinderFRC.getTrajectory(this.pathName + ".right");
-      this.rightTrajectory = PathfinderFRC.getTrajectory(this.pathName + ".left");
-    } catch (IOException e) {
-      System.out.println("File not found");
-      leftTrajectory = null;
-      rightTrajectory = null;
-      return;
-    }
 
     leftFollower = new EncoderFollower(leftTrajectory);
     rightFollower = new EncoderFollower(rightTrajectory);
@@ -61,10 +63,11 @@ public class FollowPath extends Command {
     // TODO: Tune PID Values
 
     final double P = 1d;
-    final double I = .1d;
+    final double I = 0d;
+    final double D = 0d;
 
-    leftFollower.configurePIDVA(P, I, 0d, 1 / RobotMap.MAX_VELOCITY, 0);
-    rightFollower.configurePIDVA(P, I, 0d, 1 / RobotMap.MAX_VELOCITY, 0);
+    leftFollower.configurePIDVA(P, I, D, 1 / RobotMap.MAX_VELOCITY, 0);
+    rightFollower.configurePIDVA(P, I, D, 1 / RobotMap.MAX_VELOCITY, 0);
 
     int leftCount = (int) leftEncoder.getPosition() / leftEncoder.getCPR();
     int rightCount = (int) rightEncoder.getPosition() / rightEncoder.getCPR();

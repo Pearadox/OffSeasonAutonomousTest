@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.commands.FollowPath;
 import frc.robot.subsystems.*;
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -26,6 +27,7 @@ public class Robot extends TimedRobot {
   public static OI oi;
   public static DriveTrain driveTrain;
   public static Gyro gyro;
+  Command autonomousCommand;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -35,7 +37,9 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     driveTrain = new DriveTrain();
     oi = new OI();
-    gyro = new AnalogGyro(0);
+    gyro = new AnalogGyro(RobotMap.GYRO_PORT_ID);
+
+    autonomousCommand = new FollowPath("Test");
     // chooser.addOption("My Auto", new MyAutoCommand());
   }
 
@@ -78,7 +82,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
-    
+    if (autonomousCommand != null) { autonomousCommand.start(); }
   }
 
   /**

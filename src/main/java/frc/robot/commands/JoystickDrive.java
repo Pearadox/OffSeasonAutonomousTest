@@ -13,7 +13,6 @@ import frc.robot.Robot;
 public class JoystickDrive extends Command {
   public JoystickDrive() {
     requires(Robot.driveTrain);
-  
   }
 
   // Called just before this Command runs the first time
