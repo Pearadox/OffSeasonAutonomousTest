@@ -51,13 +51,31 @@ public class FollowPath extends Command {
     this(pathName, new char[0]);
   }
 
+  /**
+   * 
+   * @param pathName Name of the path in filesystem
+   * @param args Character array of arguments: 
+   * - 'R' or 'r' for reversed
+   * - 'M' or 'm' for mirrored
+   */
   public FollowPath(String pathName, char[] args) {
     requires(Robot.driveTrain);
     this.pathName = pathName;
-    reverse = args.toString().contains("r");
-    mirror = args.toString().contains("m");
+    reverse = args.toString().contains("r") || args.toString().contains("R");
+    mirror = args.toString().contains("m") || args.toString().contains("M");
     initialHeading = boundTo180(Robot.gyro.getYaw()); 
     pathStartHeading = leftTrajectory.getStartHeading();
+  }
+
+  /**
+   * 
+   * @param pathName Name of the path in filesystem
+   * @param args String of arguments: 
+   * - 'R' or 'r' for reversed
+   * - 'M' or 'm' for mirrored
+   */
+  public FollowPath(String pathName, String args) {
+    this(pathName, args.toCharArray());
   }
 
   /**
