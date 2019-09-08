@@ -34,4 +34,8 @@ public class RobotMap {
 
   public static final double WHEEL_DIAMETER = 0d;
   public static final double MAX_VELOCITY = 14d;
+
+  public static final String PATH_FILE_PATH = "/home/RoboRIO/paths";
+
+  
 }

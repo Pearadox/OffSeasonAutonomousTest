@@ -7,15 +7,15 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.AnalogGyro;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
-import edu.wpi.first.wpilibj.interfaces.Gyro;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.commands.FollowPath;
 import frc.robot.subsystems.*;
+import com.kauailabs.navx.frc.*;
+
 /**
  * The VM is configured to automatically run this class, and to call the
  * functions corresponding to each mode, as described in the TimedRobot
@@ -26,8 +26,11 @@ import frc.robot.subsystems.*;
 public class Robot extends TimedRobot {
   public static OI oi;
   public static DriveTrain driveTrain;
-  public static Gyro gyro;
+  public static AHRS gyro;
   Command autonomousCommand;
+
+  private double prevLeftDis = 0;
+  private double prevRightDis = 0;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -37,7 +40,7 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     driveTrain = new DriveTrain();
     oi = new OI();
-    gyro = new AnalogGyro(RobotMap.GYRO_PORT_ID);
+    gyro = new AHRS();
 
     autonomousCommand = new FollowPath("Test");
     // chooser.addOption("My Auto", new MyAutoCommand());
@@ -53,6 +56,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
+    SmartDashboard.putNumber("Left Speed", (driveTrain.getLeftDistance() - prevLeftDis) * 5);
+    SmartDashboard.putNumber("Right Speed", (driveTrain.getRightDistance() - prevLeftDis) * 5);
+    prevLeftDis = driveTrain.getLeftDistance();
+    prevRightDis = driveTrain.getRightDistance();
   }
 
   /**

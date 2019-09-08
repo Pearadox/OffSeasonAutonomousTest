@@ -7,6 +7,8 @@
 
 package frc.robot.subsystems;
 
+import frc.robot.commands.JoystickDrive;
+
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
@@ -31,24 +33,13 @@ public class DriveTrain extends Subsystem {
   private CANEncoder backLeftEncoder = new CANEncoder((CANSparkMax) backLeft);
   private CANEncoder backRightEncoder = new CANEncoder((CANSparkMax) backRight);
 
-  /**
-   * @return the frontLeftEncoder
-   */
-  public CANEncoder getFrontLeftEncoder() {
-    return frontLeftEncoder;
-  }
-
-  /**
-   * @return the frontRightEncoder
-   */
-  public CANEncoder getFrontRightEncoder() {
-    return frontRightEncoder;
-  }
+  private double gearboxRatio = 4.67;
+  private double shaftWheelRatio = 26d/12d;
+  private double wheelCircumfrence = Math.PI / 2;
 
   @Override
   public void initDefaultCommand() {
-    // Set the default command for a subsystem here.
-    // setDefaultCommand(new MySpecialCommand());
+    setDefaultCommand(new JoystickDrive());
   }
 
   public void drive(double leftSpeed, double rightSpeed) {
@@ -64,5 +55,24 @@ public class DriveTrain extends Subsystem {
   private void setRightSpeed(double speed) {
     frontRight.set(speed);
     backRight.set(speed);
+  }
+
+  /**************************************************************
+   * Unless otherwise noted, all values are in feet and seconds *
+   **************************************************************/
+  public double getLeftPosition() {
+    return (frontLeftEncoder.getPosition() + backLeftEncoder.getPosition())/2;
+  }
+
+  public double getRightPosition() {
+    return (frontRightEncoder.getPosition() + backRightEncoder.getPosition())/2;
+  }
+
+  public double getLeftDistance() {
+    return getLeftPosition() * wheelCircumfrence / (gearboxRatio * shaftWheelRatio);
+  }
+
+  public double getRightDistance() {
+    return getLeftPosition() * wheelCircumfrence / (gearboxRatio * shaftWheelRatio);
   }
 }
