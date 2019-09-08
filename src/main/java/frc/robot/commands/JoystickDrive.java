@@ -23,16 +23,12 @@ public class JoystickDrive extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double speed = Robot.oi.joystick.getX();
-    double rotation = Robot.oi.joystick.getY();
+    double speed = Robot.oi.joystick.getY();
+    double rotation = Robot.oi.joystick.getZ();
 
-    if (Math.abs(speed) < .15) {
-      speed = 0d;
-    } 
-
-    if (Math.abs(rotation) < .15) {
-      rotation = 0d;
-    }
+    if (Math.abs(speed) < .15) { speed = 0d; }
+    if (Math.abs(rotation) < .15) { rotation = 0d; }
+    else { rotation /= 3; }
 
     Robot.driveTrain.drive(speed+rotation, speed-rotation);
   }

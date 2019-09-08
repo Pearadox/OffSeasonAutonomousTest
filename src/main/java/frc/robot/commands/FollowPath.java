@@ -7,17 +7,12 @@
 
 package frc.robot.commands;
 
-import java.io.FileReader;
-import java.io.BufferedReader;
 import java.io.File;
 
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
-import frc.robot.RobotMap;
 
 import java.io.IOException;
-
-import com.revrobotics.CANEncoder;
 
 import edu.wpi.first.wpilibj.*;
 
@@ -25,20 +20,17 @@ import frc.robot.types.Trajectory;
 
 public class FollowPath extends Command {
 
-  private CANEncoder leftEncoder;
-  private CANEncoder rightEncoder;
-  
   private final String pathName;
   private final boolean reverse;
   private final boolean mirror;
   private Trajectory rightTrajectory;
   private Trajectory leftTrajectory;
 
-  private final double kV = 1; // Velocity
-  private final double kA = 1; // Acceleration
-  private final double kP = 0; // Proportional
-  private final double kI = 0; // Integral
-  private final double kD = 0; // Derivative
+  private double kV = 1; // Velocity
+  private double kA = 1; // Acceleration
+  private double kP = 0; // Proportional
+  private double kI = 0; // Integral
+  private double kD = 0; // Derivative
 
   private double errorL;
   private double errorR;
@@ -72,15 +64,32 @@ public class FollowPath extends Command {
       rightTrajectory = (mirror^reverse) ? new Trajectory(leftFile) : new Trajectory(rightFile);
     } catch (IOException exc) {
       exc.printStackTrace();
+      leftTrajectory = null;
+      rightTrajectory = null;
     }
   }
 
+  private void shuffleboardSetup() {
+    Robot.prefs = Preferences.getInstance();
+    
+    if (!Preferences.getInstance().containsKey("kV")) { Preferences.getInstance().putDouble("kV", kV); }
+    if (!Preferences.getInstance().containsKey("kV")) { Preferences.getInstance().putDouble("kA", kA); }
+    if (!Preferences.getInstance().containsKey("kV")) { Preferences.getInstance().putDouble("kP", kP); }
+    if (!Preferences.getInstance().containsKey("kV")) { Preferences.getInstance().putDouble("kI", kI); }
+    if (!Preferences.getInstance().containsKey("kV")) { Preferences.getInstance().putDouble("kD", kD); }
 
+    kV = Preferences.getInstance().getDouble("kV", kV);
+    kA = Preferences.getInstance().getDouble("kA", kA);
+    kP = Preferences.getInstance().getDouble("kP", kP);
+    kI = Preferences.getInstance().getDouble("kI", kI);
+    kD = Preferences.getInstance().getDouble("kD", kD);
+  }
 
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
     readTrajectory();
+    shuffleboardSetup();
   } 
 
   // Called repeatedly when this Command is scheduled to run
@@ -128,7 +137,13 @@ public class FollowPath extends Command {
   // Make this return true when this Command no longer needs to run execute()
   @Override
   protected boolean isFinished() {
-    return !leftTrajectory.hasNext() || !rightTrajectory.hasNext();
+    if (
+      !leftTrajectory.hasNext() || 
+      !rightTrajectory.hasNext() ||
+      leftTrajectory == null ||
+      rightTrajectory == null
+    ) { return true; }
+    return false;
   }
 
   // Called once after isFinished returns true

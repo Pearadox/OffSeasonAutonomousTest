@@ -7,13 +7,15 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import frc.robot.commands.FollowPath;
 import frc.robot.subsystems.*;
+
 import com.kauailabs.navx.frc.*;
 
 /**
@@ -27,10 +29,12 @@ public class Robot extends TimedRobot {
   public static OI oi;
   public static DriveTrain driveTrain;
   public static AHRS gyro;
+  public static Preferences prefs;
   Command autonomousCommand;
 
   private double prevLeftDis = 0;
   private double prevRightDis = 0;
+
 
   /**
    * This function is run when the robot is first started up and should be
@@ -41,8 +45,11 @@ public class Robot extends TimedRobot {
     driveTrain = new DriveTrain();
     oi = new OI();
     gyro = new AHRS();
+    prefs = Preferences.getInstance();
 
     autonomousCommand = new FollowPath("Test");
+
+    driveTrain.setEncoders();
     // chooser.addOption("My Auto", new MyAutoCommand());
   }
 
@@ -57,7 +64,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     SmartDashboard.putNumber("Left Speed", (driveTrain.getLeftDistance() - prevLeftDis) * 5);
-    SmartDashboard.putNumber("Right Speed", (driveTrain.getRightDistance() - prevLeftDis) * 5);
+    SmartDashboard.putNumber("Right Speed", (driveTrain.getRightDistance() - prevRightDis) * 5);
     prevLeftDis = driveTrain.getLeftDistance();
     prevRightDis = driveTrain.getRightDistance();
   }

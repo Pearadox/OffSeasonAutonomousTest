@@ -42,6 +42,17 @@ public class DriveTrain extends Subsystem {
     setDefaultCommand(new JoystickDrive());
   }
 
+  public void setEncoders(double position) {
+    frontLeftEncoder.setPosition(position);
+    frontRightEncoder.setPosition(position);
+    backLeftEncoder.setPosition(position);
+    backRightEncoder.setPosition(position);
+  }
+
+  public void setEncoders() {
+    setEncoders(0);
+  }
+
   public void drive(double leftSpeed, double rightSpeed) {
     setLeftSpeed(leftSpeed);
     setRightSpeed(rightSpeed);
