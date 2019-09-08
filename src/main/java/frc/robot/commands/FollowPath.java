@@ -30,6 +30,7 @@ public class FollowPath extends Command {
   
   private final String pathName;
   private final boolean reverse;
+  private final boolean mirror;
   private Trajectory rightTrajectory;
   private Trajectory leftTrajectory;
 
@@ -50,15 +51,14 @@ public class FollowPath extends Command {
   private Trajectory.PathPoint nextRightValues;
   
   public FollowPath(String pathName) {
-    requires(Robot.driveTrain);
-    this.pathName = pathName;
-    this.reverse = false;
+    this(pathName, new char[0]);
   }
 
-  public FollowPath(String pathName, boolean reverse) {
+  public FollowPath(String pathName, char[] args) {
     requires(Robot.driveTrain);
     this.pathName = pathName;
-    this.reverse = reverse;
+    reverse = args.toString().contains("r");
+    mirror = args.toString().contains("m");
   }
 
   /**
@@ -66,8 +66,10 @@ public class FollowPath extends Command {
    */
   private void readTrajectory() {
     try {
-      leftTrajectory = new Trajectory("");
-      rightTrajectory = new Trajectory("");
+      File leftFile = new File(Filesystem.getDeployDirectory() + pathName + "_left.csv");
+      File rightFile = new File(Filesystem.getDeployDirectory() + pathName + "_right.csv");
+      leftTrajectory = (mirror^reverse) ? new Trajectory(rightFile) : new Trajectory(leftFile);
+      rightTrajectory = (mirror^reverse) ? new Trajectory(leftFile) : new Trajectory(rightFile);
     } catch (IOException exc) {
       exc.printStackTrace();
     }
@@ -86,26 +88,41 @@ public class FollowPath extends Command {
   protected void execute() {
     nextLeftValues = leftTrajectory.getNext();
     nextRightValues = leftTrajectory.getNext();
-    errorL = nextLeftValues.position - Robot.driveTrain.getLeftDistance();
-    errorR = nextRightValues.position - Robot.driveTrain.getRightDistance();
+    errorL = (!reverse ? nextLeftValues.position : -nextLeftValues.position) - Robot.driveTrain.getLeftDistance();
+    errorR = (!reverse ? nextRightValues.position : -nextLeftValues.position) - Robot.driveTrain.getRightDistance();
     totalErrorL += errorL;
     totalErrorR += errorR;
 
-    double leftOutput = 
+    double leftOutput = reverse ?
                         kV * nextLeftValues.velocity +
                         kA * nextLeftValues.acceleration +
                         kP * errorL +
                         kI * totalErrorL +
+                        kD * errorL - lastErrorL
+                        :
+                        -kV * nextLeftValues.velocity +
+                        -kA * nextLeftValues.acceleration +
+                        kP * errorL +
+                        kI * totalErrorL +
                         kD * errorL - lastErrorL;
                         
-    double rightOutput = 
+    double rightOutput = reverse ?
                         kV * nextRightValues.velocity +
                         kA * nextRightValues.acceleration +
                         kP * errorR +
                         kI * totalErrorR +
-                        kD * errorR - lastErrorL;
+                        kD * errorR - lastErrorR
+                        :
+                        -kV * nextRightValues.velocity +
+                        -kA * nextRightValues.acceleration +
+                        kP * errorR +
+                        kI * totalErrorR +
+                        kD * errorR - lastErrorR;
     
     Robot.driveTrain.drive(leftOutput, rightOutput);
+
+    lastErrorL = errorL;
+    lastErrorR = errorR;
   }
 
   // Make this return true when this Command no longer needs to run execute()
