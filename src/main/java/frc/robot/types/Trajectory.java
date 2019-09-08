@@ -29,6 +29,7 @@ public class Trajectory {
 
     public Trajectory(String filePath) throws IOException {
         BufferedReader csvReader = new BufferedReader(new FileReader(filePath));
+        csvReader.readLine();
         String row;
         while ((row = csvReader.readLine()) != null) {
             String[] data = row.split(",");
@@ -43,6 +44,7 @@ public class Trajectory {
     public Trajectory(File file) throws IOException {
         BufferedReader csvReader = new BufferedReader(new FileReader(file));
         String row;
+        csvReader.readline();
         while ((row = csvReader.readLine()) != null) {
             String[] data = row.split(",");
             double pos = Double.parseDouble(data[0]);
