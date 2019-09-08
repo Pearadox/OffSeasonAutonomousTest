@@ -11,6 +11,7 @@ import java.io.File;
 
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
+import frc.robot.RobotMap;
 
 import java.io.IOException;
 
@@ -28,8 +29,7 @@ public class FollowPath extends Command {
   private final double initialHeading;
   private final double pathStartHeading;
 
-  private final double maxVelocity = 14.25;
-  private double kV = 1 / maxVelocity; // Velocity
+  private double kV = 1 / RobotMap.MAX_VELOCITY; // Velocity
   private double kA = 1; // Acceleration
   private double kH = 1; // Heading
   private double kP = 1; // Proportional
@@ -43,6 +43,8 @@ public class FollowPath extends Command {
   private double lastErrorL;
   private double lastErrorR;
   private double errorH;
+
+  private double startTime;
 
   private Trajectory.PathPoint nextLeftValues;
   private Trajectory.PathPoint nextRightValues;
@@ -64,6 +66,7 @@ public class FollowPath extends Command {
     reverse = args.toString().contains("r") || args.toString().contains("R");
     mirror = args.toString().contains("m") || args.toString().contains("M");
     initialHeading = boundTo180(Robot.gyro.getYaw()); 
+    startTime = Timer.getFPGATimestamp();
     pathStartHeading = leftTrajectory.getStartHeading();
   }
 
@@ -181,7 +184,9 @@ public class FollowPath extends Command {
       !leftTrajectory.hasNext() || 
       !rightTrajectory.hasNext() ||
       leftTrajectory == null ||
-      rightTrajectory == null
+      rightTrajectory == null ||
+      Timer.getFPGATimestamp() - startTime >= leftTrajectory.getTotalTime() ||
+      Timer.getFPGATimestamp() - startTime >= rightTrajectory.getTotalTime()
     ) { return true; }
     return false;
   }

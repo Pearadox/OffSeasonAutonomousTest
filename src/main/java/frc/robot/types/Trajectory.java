@@ -65,6 +65,10 @@ public class Trajectory {
         return next().toArray();
     }
 
+    public double getTotalTime() {
+        return points.size() * .2;
+    }
+
     public double getStartHeading() {
         return points.get(0).heading;
     }
