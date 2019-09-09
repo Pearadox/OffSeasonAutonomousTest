@@ -113,7 +113,7 @@ public class FollowPath extends Command {
   @Override
   protected void execute() {
     nextLeftValues = leftTrajectory.next();
-    nextRightValues = leftTrajectory.next();
+    nextRightValues = rightTrajectory.next();
     errorL = (!reverse ? nextLeftValues.position : -nextLeftValues.position) - Robot.driveTrain.getLeftDistance();
     errorR = (!reverse ? nextRightValues.position : -nextLeftValues.position) - Robot.driveTrain.getRightDistance();
     totalErrorL += errorL;
