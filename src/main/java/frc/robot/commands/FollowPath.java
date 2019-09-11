@@ -30,12 +30,14 @@ public class FollowPath extends Command {
   private final double pathStartHeading;
 
   private double kV = 1 / RobotMap.MAX_VELOCITY; // Velocity
-  private double kA = 1; // Acceleration
-  private double kH = 1; // Heading
-  private double kP = 1; // Proportional
+  private double kA = .035; // Acceleration
+  private double kH = -.009; // Heading
+  private double kP = .12; // Proportional
   private double kI = 0; // Integral
   private double kD = 0; // Derivative
 
+
+  // Variables used in execute, declared here to avoid GC
   private double errorL;
   private double errorR;
   private double totalErrorL = 0d;

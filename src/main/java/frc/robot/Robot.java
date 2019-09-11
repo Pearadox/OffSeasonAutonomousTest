@@ -47,7 +47,7 @@ public class Robot extends TimedRobot {
     gyro = new AHRS();
     prefs = Preferences.getInstance();
 
-    autonomousCommand = new FollowPath("Test");
+    autonomousCommand = new FollowPath("Test", "");
 
     driveTrain.setEncoders();
     // chooser.addOption("My Auto", new MyAutoCommand());
