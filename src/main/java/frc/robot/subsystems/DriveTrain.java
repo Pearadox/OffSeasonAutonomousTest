@@ -33,9 +33,12 @@ public class DriveTrain extends Subsystem {
   private CANEncoder backLeftEncoder = new CANEncoder((CANSparkMax) backLeft);
   private CANEncoder backRightEncoder = new CANEncoder((CANSparkMax) backRight);
 
-  private double gearboxRatio = 4.67;
-  private double shaftWheelRatio = 26d/12d;
-  private double wheelCircumfrence = Math.PI / 2;
+  private final double GEARBOX_RATIO = 4.67;
+  private final double SHAFT_WHEEL_RATIO = 26d/12d;
+  private final double WHEEL_CIRCUMFRENCE = Math.PI / 2;
+
+  private final double QUICK_TURN_THRESHOLD = .1;
+  private final double DEADBAND = .1;
 
   @Override
   public void initDefaultCommand() {
@@ -53,9 +56,49 @@ public class DriveTrain extends Subsystem {
     setEncoders(0);
   }
 
-  public void drive(double leftSpeed, double rightSpeed) {
+  public void tankDrive(double leftSpeed, double rightSpeed) {
+    if (Math.abs(leftSpeed) <= DEADBAND) { leftSpeed = 0; }
+    if (Math.abs(rightSpeed) <= DEADBAND) { rightSpeed = 0; }
     setLeftSpeed(leftSpeed);
     setRightSpeed(rightSpeed);
+  }
+
+  public void arcadeDrive(double throttle, double rotation) {
+    if (Math.abs(throttle) <= DEADBAND) { throttle = 0; }
+    if (Math.abs(rotation) <= DEADBAND) { rotation = 0; }
+    setLeftSpeed(throttle + rotation);
+    setRightSpeed(throttle - rotation);
+  }
+
+  public void curvatureDrive(double throttle, double rotation) {
+    double leftOutput;
+    double rightOutput;
+
+    // Quickturn
+    if (Math.abs(throttle) < QUICK_TURN_THRESHOLD) {
+      leftOutput = rotation;
+      rightOutput = -rotation;
+    } else {
+      leftOutput = throttle + throttle * rotation;
+      rightOutput = throttle - throttle * rotation;
+
+      if (leftOutput > 1) {
+        rightOutput -= leftOutput - 1;
+        leftOutput = 1;
+      } else if (rightOutput > 1) {
+        leftOutput -= rightOutput - 1;
+        rightOutput = 1;
+      } else if (leftOutput < -1) {
+        rightOutput -= leftOutput + 1;
+        leftOutput = -1;
+      } else if (rightOutput > -1) {
+        leftOutput -= rightOutput + 1;
+        rightOutput = 1;
+      }
+    }
+
+    setLeftSpeed(leftOutput);
+    setRightSpeed(rightOutput);
   }
 
   private void setLeftSpeed(double speed) {
@@ -80,10 +123,11 @@ public class DriveTrain extends Subsystem {
   }
 
   public double getLeftDistance() {
-    return getLeftPosition() * wheelCircumfrence / (gearboxRatio * shaftWheelRatio);
+    return getLeftPosition() * WHEEL_CIRCUMFRENCE / (GEARBOX_RATIO * SHAFT_WHEEL_RATIO);
   }
 
   public double getRightDistance() {
-    return getLeftPosition() * wheelCircumfrence / (gearboxRatio * shaftWheelRatio);
+    return getLeftPosition() * WHEEL_CIRCUMFRENCE / (GEARBOX_RATIO * SHAFT_WHEEL_RATIO);
   }
+
 }

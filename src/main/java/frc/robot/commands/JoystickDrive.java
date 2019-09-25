@@ -10,7 +10,14 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 
+enum DriveType {
+  ARCADE,
+  CURVATURE,
+}
+
 public class JoystickDrive extends Command {
+  private DriveType driveType = DriveType.ARCADE;
+
   public JoystickDrive() {
     requires(Robot.driveTrain);
   }
@@ -23,14 +30,20 @@ public class JoystickDrive extends Command {
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    double speed = Robot.oi.joystick.getY();
+    driveType = Robot.oi.joystick.getTrigger() ? DriveType.CURVATURE : DriveType.ARCADE;
+    double throttle = -Robot.oi.joystick.getY();
     double rotation = Robot.oi.joystick.getZ();
+    // Set small deadband
+    if (Math.abs(throttle) < .1) { throttle = 0; }
+    if (Math.abs(rotation) < .1) { rotation = 0; }
 
-    if (Math.abs(speed) < .15) { speed = 0d; }
-    if (Math.abs(rotation) < .15) { rotation = 0d; }
-    else { rotation /= Robot.oi.joystick.getTrigger() ? 3 : 2; }
-
-    Robot.driveTrain.drive(speed+rotation, speed-rotation);
+    if (driveType == DriveType.ARCADE) {
+      rotation /= 3;
+      Robot.driveTrain.arcadeDrive(throttle, rotation);
+    } else if (driveType == DriveType.CURVATURE) {
+      rotation /= 5;
+      Robot.driveTrain.curvatureDrive(throttle, rotation);
+    }
   }
 
   // Make this return true when this Command no longer needs to run execute()

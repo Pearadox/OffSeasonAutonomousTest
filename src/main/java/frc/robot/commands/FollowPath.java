@@ -17,7 +17,7 @@ import java.io.IOException;
 
 import edu.wpi.first.wpilibj.*;
 
-import frc.robot.types.Trajectory;
+import frc.lib.pathfollowing.*;
 
 public class FollowPath extends Command {
 
@@ -48,8 +48,8 @@ public class FollowPath extends Command {
 
   private double startTime;
 
-  private Trajectory.PathPoint nextLeftValues;
-  private Trajectory.PathPoint nextRightValues;
+  private Point nextLeftValues;
+  private Point nextRightValues;
   
   public FollowPath(String pathName) {
     this(pathName, new char[0]);
@@ -69,7 +69,7 @@ public class FollowPath extends Command {
     mirror = args.toString().contains("m") || args.toString().contains("M");
     initialHeading = boundTo180(Robot.gyro.getYaw()); 
     startTime = Timer.getFPGATimestamp();
-    pathStartHeading = leftTrajectory.getStartHeading();
+    pathStartHeading = leftTrajectory.first().heading;
   }
 
   /**
@@ -137,43 +137,42 @@ public class FollowPath extends Command {
   protected void execute() {
     nextLeftValues = leftTrajectory.next();
     nextRightValues = rightTrajectory.next();
-    errorL = (!reverse ? nextLeftValues.position : -nextLeftValues.position) - Robot.driveTrain.getLeftDistance();
-    errorR = (!reverse ? nextRightValues.position : -nextLeftValues.position) - Robot.driveTrain.getRightDistance();
+    if (reverse) {
+      nextLeftValues.position *= -1;
+      nextLeftValues.acceleration *= -1;
+      nextLeftValues.velocity *= -1;
+      nextRightValues.position *= -1;
+      nextRightValues.acceleration *= -1;
+      nextRightValues.velocity *= -1;
+    }
+    if (reverse^mirror) {
+      errorL = nextLeftValues.position - Robot.driveTrain.getRightDistance();
+      errorR = nextRightValues.position - Robot.driveTrain.getLeftDistance();
+    } else {
+      errorL = nextLeftValues.position - Robot.driveTrain.getLeftDistance();
+      errorR = nextRightValues.position - Robot.driveTrain.getRightDistance(); 
+    }
     totalErrorL += errorL;
     totalErrorR += errorR;
     errorH = (nextLeftValues.heading - pathStartHeading) - (boundTo180(Robot.gyro.getYaw()) - initialHeading);
 
-    double leftOutput = reverse ?
+    double leftOutput =
                         kV * nextLeftValues.velocity +
                         kA * nextLeftValues.acceleration +
                         kP * errorL +
                         kI * totalErrorL +
-                        kD * errorL - lastErrorL +
-                        kH * errorH
-                        :
-                        -kV * nextLeftValues.velocity +
-                        -kA * nextLeftValues.acceleration +
-                        kP * errorL +
-                        kI * totalErrorL +
-                        kD * errorL - lastErrorL +
+                        kD * (errorL - lastErrorL) +
                         kH * errorH;
                         
-    double rightOutput = reverse ?
+    double rightOutput =
                         kV * nextRightValues.velocity +
                         kA * nextRightValues.acceleration +
                         kP * errorR +
                         kI * totalErrorR +
-                        kD * errorR - lastErrorR -
-                        kH * errorH
-                        :
-                        -kV * nextRightValues.velocity +
-                        -kA * nextRightValues.acceleration +
-                        kP * errorR +
-                        kI * totalErrorR +
-                        kD * errorR - lastErrorR -
+                        kD * (errorR - lastErrorR) -
                         kH * errorH;
-    
-    Robot.driveTrain.drive(leftOutput, rightOutput);
+
+    Robot.driveTrain.tankDrive(leftOutput, rightOutput);
 
     lastErrorL = errorL;
     lastErrorR = errorR;
@@ -187,8 +186,7 @@ public class FollowPath extends Command {
       !rightTrajectory.hasNext() ||
       leftTrajectory == null ||
       rightTrajectory == null ||
-      Timer.getFPGATimestamp() - startTime >= leftTrajectory.getTotalTime() ||
-      Timer.getFPGATimestamp() - startTime >= rightTrajectory.getTotalTime()
+      Timer.getFPGATimestamp() - startTime >= leftTrajectory.getTotalTime()
     ) { return true; }
     return false;
   }
