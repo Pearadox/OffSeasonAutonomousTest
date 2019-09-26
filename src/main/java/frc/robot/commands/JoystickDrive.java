@@ -12,7 +12,7 @@ import frc.robot.Robot;
 
 enum DriveType {
   ARCADE,
-  CURVATURE,
+  CURVATURE;
 }
 
 public class JoystickDrive extends Command {
