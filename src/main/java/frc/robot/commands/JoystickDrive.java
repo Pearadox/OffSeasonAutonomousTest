@@ -41,7 +41,7 @@ public class JoystickDrive extends Command {
       rotation /= 3;
       Robot.driveTrain.arcadeDrive(throttle, rotation);
     } else if (driveType == DriveType.CURVATURE) {
-      rotation /= 5;
+      rotation /= 2;
       Robot.driveTrain.curvatureDrive(throttle, rotation);
     }
   }

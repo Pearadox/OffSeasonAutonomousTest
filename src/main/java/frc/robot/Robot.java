@@ -12,9 +12,11 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
+import frc.lib.logging.CSVLogger;
 import frc.robot.commands.FollowPath;
 import frc.robot.subsystems.*;
+
+import java.io.IOException;
 
 import com.kauailabs.navx.frc.*;
 
@@ -31,6 +33,7 @@ public class Robot extends TimedRobot {
   public static AHRS gyro;
   public static Preferences prefs;
   Command autonomousCommand;
+  CSVLogger logger;
 
   private double prevLeftDis = 0;
   private double prevRightDis = 0;
@@ -76,6 +79,7 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void disabledInit() {
+    logger.stop();
   }
 
   @Override
@@ -96,6 +100,10 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void autonomousInit() {
+    newLogger();
+    if (logger != null) {
+      logger.start();
+    }
     if (autonomousCommand != null) { autonomousCommand.start(); }
   }
 
@@ -109,6 +117,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    if (logger == null) {
+      newLogger();
+    }
+    if (logger != null) {
+
+    }
     if (autonomousCommand.isRunning()) { autonomousCommand.cancel(); }
   }
 
@@ -125,5 +139,17 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void testPeriodic() {
+  }
+
+  private void newLogger() {
+    try {
+      logger = new CSVLogger();
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  private void addLoggerSources() {
+    
   }
 }
