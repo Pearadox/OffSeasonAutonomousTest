@@ -30,7 +30,6 @@ public class CSVLogger {
     private double totalTime = 0;
     private boolean running = false;
     private final File logFile;
-    private FileWriter fileWriter;
 
     private final List<Supplier<String>> sources = new ArrayList<>();
     private final List<String> sourceNames = new ArrayList<>();
@@ -68,12 +67,8 @@ public class CSVLogger {
         }
 
         addSource("Elapsed Time", () -> totalTime);
-        fileWriter = new FileWriter(logFile);
-        try {
-            writeTitles();
-        } catch (IOException e) {
-            throw new IOException("Write");
-        }
+        
+        writeTitles();
     }
 
     public synchronized void addSource(String name, Supplier<Object> supplier) {
@@ -94,16 +89,11 @@ public class CSVLogger {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    try {
-                        writeValues();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        cancel();
-                    }
-                    incrementTime();
-                    if (!running) { 
+                    if (!writeValues() || !running) {
                         timer.cancel();
                         timer.purge(); 
+                    } else {
+                        incrementTime();
                     }
                 }
             }, period);
@@ -118,12 +108,27 @@ public class CSVLogger {
         return running;
     }
 
-    private void writeTitles() throws IOException {
-        fileWriter.write(sourceNames.stream().collect(Collectors.joining(",")) + "\n");
+    private void writeTitles() {
+        try (FileWriter fileWriter = new FileWriter(logFile, true)) {
+            fileWriter.append(sourceNames.stream().collect(Collectors.joining(",")) + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
     }
 
-    private void writeValues() throws IOException {
-        fileWriter.write(sources.stream().map(s -> s.get()).collect(Collectors.joining(",")) + "\n");
+    private boolean writeValues() {
+        for (Supplier<String> source : sources) {
+            if (source == null) {
+                source = () -> "null";
+            }
+        }
+        try (FileWriter fileWriter = new FileWriter(logFile, true)) {
+            fileWriter.append(sources.stream().map(s -> s.get()).collect(Collectors.joining(",")) + "\n");
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private synchronized void incrementTime() {
