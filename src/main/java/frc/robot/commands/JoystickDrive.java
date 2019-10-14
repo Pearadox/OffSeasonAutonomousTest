@@ -7,15 +7,16 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.command.Command;
 import frc.robot.Robot;
 
-enum DriveType {
-  ARCADE,
-  CURVATURE;
-}
+import edu.wpi.first.wpilibj.command.Command;
 
 public class JoystickDrive extends Command {
+  enum DriveType {
+    ARCADE,
+    CURVATURE;
+  }
+
   private DriveType driveType = DriveType.ARCADE;
 
   public JoystickDrive() {
@@ -34,8 +35,12 @@ public class JoystickDrive extends Command {
     double throttle = -Robot.oi.joystick.getY();
     double rotation = Robot.oi.joystick.getZ();
     // Set small deadband
-    if (Math.abs(throttle) < .1) { throttle = 0; }
-    if (Math.abs(rotation) < .1) { rotation = 0; }
+    if (Math.abs(throttle) < .1) { 
+      throttle = 0; 
+    }
+    if (Math.abs(rotation) < .1) { 
+      rotation = 0; 
+    }
 
     if (driveType == DriveType.ARCADE) {
       rotation /= 3;
