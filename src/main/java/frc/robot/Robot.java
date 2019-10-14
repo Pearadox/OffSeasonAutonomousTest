@@ -7,18 +7,25 @@
 
 package frc.robot;
 
-import edu.wpi.first.wpilibj.Preferences;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.command.Command;
-import edu.wpi.first.wpilibj.command.Scheduler;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.lib.logging.CSVLogger;
 import frc.robot.commands.FollowPath;
 import frc.robot.subsystems.*;
 
 import java.io.IOException;
 
-import com.kauailabs.navx.frc.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.command.Scheduler;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -32,12 +39,15 @@ public class Robot extends TimedRobot {
   public static DriveTrain driveTrain;
   public static AHRS gyro;
   public static Preferences prefs;
+  private static ScheduledExecutorService localizationService;
+  private final Lock positionLock = new ReentrantLock();
   Command autonomousCommand;
   CSVLogger logger;
 
-  private double prevLeftDis = 0;
-  private double prevRightDis = 0;
-
+  private double lastPosL;
+  private double lastPosR;
+  private double posX;
+  private double posY;
 
   /**
    * This function is run when the robot is first started up and should be
@@ -49,6 +59,8 @@ public class Robot extends TimedRobot {
     oi = new OI();
     gyro = new AHRS();
     prefs = Preferences.getInstance();
+    localizationService = Executors.newSingleThreadScheduledExecutor();
+    localizationService.scheduleWithFixedDelay(this::updatePosition, 0, 5, TimeUnit.MILLISECONDS);
 
     autonomousCommand = new FollowPath("Test", "");
 
@@ -66,10 +78,6 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotPeriodic() {
-    SmartDashboard.putNumber("Left Speed", (driveTrain.getLeftDistance() - prevLeftDis) * 5);
-    SmartDashboard.putNumber("Right Speed", (driveTrain.getRightDistance() - prevRightDis) * 5);
-    prevLeftDis = driveTrain.getLeftDistance();
-    prevRightDis = driveTrain.getRightDistance();
   }
 
   /**
@@ -104,7 +112,9 @@ public class Robot extends TimedRobot {
     if (logger != null) {
       logger.start();
     }
-    if (autonomousCommand != null) { autonomousCommand.start(); }
+    if (autonomousCommand != null) { 
+      autonomousCommand.start();
+    }
   }
 
   /**
@@ -120,10 +130,9 @@ public class Robot extends TimedRobot {
     if (logger == null) {
       newLogger();
     }
-    if (logger != null) {
-
+    if (autonomousCommand.isRunning()) { 
+      autonomousCommand.cancel(); 
     }
-    if (autonomousCommand.isRunning()) { autonomousCommand.cancel(); }
   }
 
   /**
@@ -149,7 +158,20 @@ public class Robot extends TimedRobot {
     }
   }
 
-  private void addLoggerSources() {
-    
+  private synchronized void updatePosition() {
+    double changeInPos = (driveTrain.getLeftDistance() - lastPosL
+        + driveTrain.getRightDistance() - lastPosR) / 2;
+    double angle = Math.toRadians(gyro.getYaw());
+    setPos(posX + changeInPos * Math.cos(angle), posY + changeInPos * Math.sin(angle));
+  }
+
+  private void setPos(double x, double y) {
+    positionLock.lock();
+    try {
+      posX = x;
+      posY = y;
+    } finally {
+      positionLock.unlock();
+    }
   }
 }

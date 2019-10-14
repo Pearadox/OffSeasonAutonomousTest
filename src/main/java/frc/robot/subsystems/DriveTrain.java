@@ -7,6 +7,7 @@
 
 package frc.robot.subsystems;
 
+import frc.robot.RobotMap;
 import frc.robot.commands.JoystickDrive;
 
 import com.revrobotics.CANEncoder;
@@ -15,7 +16,6 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.command.Subsystem;
-import frc.robot.RobotMap;
 
 /**
  * Add your docs here.
@@ -23,22 +23,26 @@ import frc.robot.RobotMap;
 public class DriveTrain extends Subsystem {
   // Put methods for controlling this subsystem
   // here. Call these from Commands.
-  private SpeedController frontLeft = new CANSparkMax(RobotMap.FRONT_LEFT_MOTOR_ID, MotorType.kBrushless);
-  private SpeedController frontRight = new CANSparkMax(RobotMap.FRONT_RIGHT_MOTOR_ID, MotorType.kBrushless);
-  private SpeedController backLeft = new CANSparkMax(RobotMap.BACK_LEFT_MOTOR_ID, MotorType.kBrushless);
-  private SpeedController backRight = new CANSparkMax(RobotMap.BACK_RIGHT_MOTOR_ID, MotorType.kBrushless);
+  private SpeedController frontLeft = new CANSparkMax(RobotMap.FRONT_LEFT_MOTOR_ID,
+      MotorType.kBrushless);
+  private SpeedController frontRight = new CANSparkMax(RobotMap.FRONT_RIGHT_MOTOR_ID,
+      MotorType.kBrushless);
+  private SpeedController backLeft = new CANSparkMax(RobotMap.BACK_LEFT_MOTOR_ID,
+      MotorType.kBrushless);
+  private SpeedController backRight = new CANSparkMax(RobotMap.BACK_RIGHT_MOTOR_ID,
+      MotorType.kBrushless);
 
   private CANEncoder frontLeftEncoder = new CANEncoder((CANSparkMax) frontLeft);
   private CANEncoder frontRightEncoder = new CANEncoder((CANSparkMax) frontRight);
   private CANEncoder backLeftEncoder = new CANEncoder((CANSparkMax) backLeft);
   private CANEncoder backRightEncoder = new CANEncoder((CANSparkMax) backRight);
 
-  private final double GEARBOX_RATIO = 4.67;
-  private final double SHAFT_WHEEL_RATIO = 26d/12d;
-  private final double WHEEL_CIRCUMFRENCE = Math.PI / 2;
+  private static final double GEARBOX_RATIO = 4.67;
+  private static final double SHAFT_WHEEL_RATIO = 26d / 12d;
+  private static final double WHEEL_CIRCUMFRENCE = Math.PI / 2;
 
-  private final double QUICK_TURN_THRESHOLD = .1;
-  private final double DEADBAND = .1;
+  private static final double QUICK_TURN_THRESHOLD = .1;
+  private static final double DEADBAND = .1;
 
   @Override
   public void initDefaultCommand() {
@@ -57,15 +61,23 @@ public class DriveTrain extends Subsystem {
   }
 
   public void tankDrive(double leftSpeed, double rightSpeed) {
-    if (Math.abs(leftSpeed) <= DEADBAND) { leftSpeed = 0; }
-    if (Math.abs(rightSpeed) <= DEADBAND) { rightSpeed = 0; }
+    if (Math.abs(leftSpeed) <= DEADBAND) { 
+      leftSpeed = 0; 
+    }
+    if (Math.abs(rightSpeed) <= DEADBAND) { 
+      rightSpeed = 0; 
+    }
     setLeftSpeed(leftSpeed);
     setRightSpeed(rightSpeed);
   }
 
   public void arcadeDrive(double throttle, double rotation) {
-    if (Math.abs(throttle) <= DEADBAND) { throttle = 0; }
-    if (Math.abs(rotation) <= DEADBAND) { rotation = 0; }
+    if (Math.abs(throttle) <= DEADBAND) { 
+      throttle = 0; 
+    }
+    if (Math.abs(rotation) <= DEADBAND) { 
+      rotation = 0; 
+    }
     setLeftSpeed(throttle + rotation);
     setRightSpeed(throttle - rotation);
   }
@@ -111,15 +123,16 @@ public class DriveTrain extends Subsystem {
     backRight.set(speed);
   }
 
-  /**************************************************************
-   * Unless otherwise noted, all values are in feet and seconds *
-   **************************************************************/
+  /*------------------------------------------------------------*/
+  /* Unless otherwise noted, all values are in feet and seconds */
+  /*------------------------------------------------------------*/
+
   public double getLeftPosition() {
-    return (frontLeftEncoder.getPosition() + backLeftEncoder.getPosition())/2;
+    return (frontLeftEncoder.getPosition() + backLeftEncoder.getPosition()) / 2;
   }
 
   public double getRightPosition() {
-    return (frontRightEncoder.getPosition() + backRightEncoder.getPosition())/2;
+    return (frontRightEncoder.getPosition() + backRightEncoder.getPosition()) / 2;
   }
 
   public double getLeftDistance() {
